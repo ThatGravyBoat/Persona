@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "tech.thatgravyboat.persona.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MinecraftServerMixin",
+    "ServerPlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

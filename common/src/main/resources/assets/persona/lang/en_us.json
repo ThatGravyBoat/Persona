@@ -1,0 +1,6 @@
+{
+  "personas.naming.valid": "Enter an id.",
+  "personas.naming.invalid": "Id's must be only alphanumeric.",
+  "personas.naming.already_exists": "One with that id already exists.\nWould you like to summon it?",
+  "item.persona.persona_totem": "Persona Totem"
+}

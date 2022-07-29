@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[40,)"
+license = "All Rights Reserved"
+
+[[mods]]
+    modId = "persona"
+    version = "${version}"
+    displayName = "Personas"
+    authors = '''
+    Dev - ThatGravyBoat
+    '''
+    description = "Custom Intractable NPCs."
+
+[[dependencies.personas]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "[40,)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.personas]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[1.18.2,)"
+    ordering = "NONE"
+    side = "BOTH"

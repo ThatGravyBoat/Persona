@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "personas",
+  "version": "${version}",
+  "name": "Personas",
+  "description": "Custom Intractable NPCs.",
+  "authors": [
+    "Dev - ThatGravyBoat"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "All Rights Reserved",
+  "icon": "assets/personas/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "tech.thatgravyboat.persona.fabric.PersonasFabric"
+    ],
+    "client": [
+      "tech.thatgravyboat.persona.fabric.PersonasFabricClient"
+    ]
+  },
+  "mixins": [
+    "persona-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.18.2"
+  }
+}
