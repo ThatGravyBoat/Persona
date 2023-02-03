@@ -2,7 +2,7 @@ package tech.thatgravyboat.persona.api.interactions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.conditions.Conditions;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
@@ -27,7 +27,7 @@ public record IfInteraction(
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
+    public void activate(Persona persona, ServerPlayer player) {
         if (condition().valid(persona, player)) {
             interaction().activate(persona, player);
         } else if (elseInteraction().isPresent()) {

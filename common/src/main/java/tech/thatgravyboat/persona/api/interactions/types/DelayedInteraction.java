@@ -1,17 +1,17 @@
 package tech.thatgravyboat.persona.api.interactions.types;
 
-import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.Interactions;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
 import tech.thatgravyboat.persona.common.entity.Persona;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public record DelayedInteraction(int delay, Interaction<?> interaction) implements Interaction<DelayedInteraction> {
@@ -28,7 +28,7 @@ public record DelayedInteraction(int delay, Interaction<?> interaction) implemen
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
+    public void activate(Persona persona, ServerPlayer player) {
         EXECUTOR.schedule(() -> player.server.execute(() -> interaction.activate(persona, player)), delay, TimeUnit.MILLISECONDS);
     }
 

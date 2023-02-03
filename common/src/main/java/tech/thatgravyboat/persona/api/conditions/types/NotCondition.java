@@ -2,7 +2,7 @@ package tech.thatgravyboat.persona.api.conditions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.conditions.Conditions;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.conditions.types.base.ConditionSerializer;
@@ -12,7 +12,7 @@ public record NotCondition(Condition<?> condition) implements Condition<NotCondi
     public static final Serializer SERIALIZER = new Serializer();
 
     @Override
-    public boolean valid(ServerPlayerEntity player) {
+    public boolean valid(ServerPlayer player) {
         return !condition.valid(player);
     }
 

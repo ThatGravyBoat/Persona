@@ -1,18 +1,19 @@
 package tech.thatgravyboat.persona.client.screens.interactions;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.api.Features;
 import tech.thatgravyboat.persona.api.NpcData;
@@ -30,13 +31,13 @@ import java.util.Locale;
 
 public class InteractionScreen extends Screen {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/interactions.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/interactions.png");
 
     private AddButtonWidget addButton = null;
     private ChangeListWidget typeButton = null;
 
     private final List<ChangeModeWidget> modes = new ArrayList<>();
-    private final List<TextFieldWidget> textFields = new ArrayList<>();
+    private final List<EditBox> textFields = new ArrayList<>();
 
     private final String id;
     private final String displayName;
@@ -45,7 +46,7 @@ public class InteractionScreen extends Screen {
     private final Features features;
 
     public InteractionScreen(String id, String displayName, BlockPos pos, Appearance<?> appearance, Features features) {
-        super(new LiteralText(""));
+        super(CommonComponents.EMPTY);
         this.id = id;
         this.displayName = displayName;
         this.pos = pos;
@@ -57,9 +58,9 @@ public class InteractionScreen extends Screen {
     protected void init() {
         int x = this.width / 2 - 126;
         int y = this.height / 2 - 77;
-        addButton = addElement(new AddButtonWidget(x+232, y+4, 12,12, new LiteralText(""), p -> {
+        addButton = addElement(new AddButtonWidget(x+232, y+4, 12,12, CommonComponents.EMPTY, p -> {
             ChangeModeWidget mode = addElement(new ChangeModeWidget(x + 9, y + 18 + (modes.size() * 11), 11, 11));
-            TextFieldWidget text = addElement(new TextFieldWidget(this.textRenderer, x + 22, y + 19 + (modes.size() * 11), 220, 9, new LiteralText("")));
+            EditBox text = addElement(new EditBox(this.font, x + 22, y + 19 + (modes.size() * 11), 220, 9, CommonComponents.EMPTY));
             modes.add(mode);
             textFields.add(text);
             if (modes.size() == 10) {
@@ -69,15 +70,15 @@ public class InteractionScreen extends Screen {
         typeButton = addElement(new ChangeListWidget(x+218, y + 4, 12, 12,
                 (button, matrices, mouseX, mouseY) ->
                         this.renderTooltip(matrices,
-                                new LiteralText("Mode: " + this.typeButton.getMode().name().toLowerCase(Locale.ROOT)),
+                                Component.literal("Mode: " + this.typeButton.getMode().name().toLowerCase(Locale.ROOT)),
                                 mouseX, mouseY)));
 
-        addElement(new ButtonWidget(x + 5, y + 130, 75, 20, new LiteralText("Trade menu"),
-                p -> client.setScreen(new TradeScreen(this.id, this.displayName, this.pos, this.appearance, this.features))));
+        addElement(new Button(x + 5, y + 130, 75, 20, Component.literal("Trade menu"),
+                p -> minecraft.setScreen(new TradeScreen(this.id, this.displayName, this.pos, this.appearance, this.features))));
 
         addElement(new NextPageButton(x + 227, y + 130, 20, 20, b -> {
             NetPacketHandler.sendToServer(new CreatePersonaMessage(new NpcData(id, this.displayName, this.appearance, createInteraction(), this.features), this.pos));
-            this.close();
+            this.onClose();
         }));
     }
 
@@ -90,9 +91,9 @@ public class InteractionScreen extends Screen {
             ChangeModeWidget mode = this.modes.get(i);
             Interaction<?> interaction;
             if (mode.getMode().equals(ChangeModeWidget.Mode.CHAT)) {
-                interaction = new ChatInteraction(new LiteralText(this.textFields.get(i).getText()));
+                interaction = new ChatInteraction(Component.literal(this.textFields.get(i).getValue()));
             } else {
-                interaction = new CommandInteraction(this.textFields.get(i).getText());
+                interaction = new CommandInteraction(this.textFields.get(i).getValue());
             }
             if (this.typeButton.getMode().equals(ChangeListWidget.Mode.DELAYED) && i > 0) {
                 interaction = new DelayedInteraction(i * 500, interaction);
@@ -104,7 +105,7 @@ public class InteractionScreen extends Screen {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(Minecraft client, int width, int height) {
         int oldHeight = this.height;
         int oldWidth = this.width;
         super.resize(client, width, height);
@@ -113,7 +114,7 @@ public class InteractionScreen extends Screen {
             mode.y = mode.y - (oldHeight / 2) + (height / 2);
             this.addElement(mode);
         }
-        for (TextFieldWidget field : this.textFields) {
+        for (EditBox field : this.textFields) {
             field.x = field.x - (oldWidth / 2) + (width / 2);
             field.y = field.y - (oldHeight / 2) + (height / 2);
             this.addElement(field);
@@ -121,21 +122,21 @@ public class InteractionScreen extends Screen {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
         renderBackground(matrices);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, BACKGROUND);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        drawTexture(matrices, this.width / 2 - 126, this.height / 2 - 77, 0,0, 252, 155, 512, 512);
+        blit(matrices, this.width / 2 - 126, this.height / 2 - 77, 0,0, 252, 155, 512, 512);
         super.render(matrices, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
-    public <T extends Drawable & Selectable & Element> T addElement(T element) {
-        return addDrawable(addSelectableChild(element));
+    public <T extends Widget & GuiEventListener & NarratableEntry> T addElement(T element) {
+        return addWidget(addRenderableWidget(element));
     }
 }

@@ -2,8 +2,8 @@ package tech.thatgravyboat.persona.api.interactions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
@@ -19,8 +19,8 @@ public record CommandInteraction(String command) implements Interaction<CommandI
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
-        player.server.getCommandManager().execute(player.getCommandSource().withLevel(2).withOutput(CommandOutput.DUMMY), command);
+    public void activate(Persona persona, ServerPlayer player) {
+        player.server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withPermission(2).withSource(CommandSource.NULL), command);
     }
 
     @Override

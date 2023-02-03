@@ -5,8 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.level.storage.LevelResource;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.api.NpcData;
 import tech.thatgravyboat.persona.common.utils.FileUtils;
@@ -28,7 +28,7 @@ public class PersonaManager {
     private final Map<String, NpcDataHolder> data = new HashMap<>();
 
     public PersonaManager(MinecraftServer server) {
-        this.dataPath = server.getSavePath(WorldSavePath.ROOT).resolve("personas");
+        this.dataPath = server.getWorldPath(LevelResource.ROOT).resolve("personas");
         updateData();
     }
 
@@ -41,7 +41,7 @@ public class PersonaManager {
     }
 
     private void parsePersona(Reader reader, String id) {
-        JsonObject json = JsonHelper.deserialize(GSON, reader, JsonObject.class);
+        JsonObject json = GsonHelper.fromJson(GSON, reader, JsonObject.class);
         addNpc(id, NpcData.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, e -> {
             Personas.LOGGER.error("Could not parse persona with id '{}'", id);
             Personas.LOGGER.error(e);

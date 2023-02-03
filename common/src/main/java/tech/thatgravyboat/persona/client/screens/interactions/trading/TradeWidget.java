@@ -1,21 +1,21 @@
 package tech.thatgravyboat.persona.client.screens.interactions.trading;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.client.screens.ItemSelector;
 
-public class TradeWidget extends ClickableWidget {
+public class TradeWidget extends AbstractWidget {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/trading.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/trading.png");
 
     private final TradeScreen screen;
     private ItemSelector selector;
@@ -28,7 +28,7 @@ public class TradeWidget extends ClickableWidget {
     private IncrementButton outputCounter;
 
     public TradeWidget(TradeScreen screen, int x, int y, ItemSelector selector) {
-        super(x, y, 120, 18, new LiteralText(""));
+        super(x, y, 120, 18, CommonComponents.EMPTY);
         this.screen = screen;
         this.selector = selector;
         init();
@@ -55,7 +55,7 @@ public class TradeWidget extends ClickableWidget {
             this.selector.setClickCallBack(item -> {
                 this.primary = item.copy();
                 this.selector.setClickCallBack(null);
-                this.screen.remove(this.selector);
+                this.screen.removeWidget(this.selector);
                 updateCounter(this.primaryCounter, this.primary);
             });
         }
@@ -65,7 +65,7 @@ public class TradeWidget extends ClickableWidget {
             this.selector.setClickCallBack(item -> {
                 this.secondary = item.copy();
                 this.selector.setClickCallBack(null);
-                this.screen.remove(this.selector);
+                this.screen.removeWidget(this.selector);
                 updateCounter(this.secondaryCounter, this.secondary);
             });
         }
@@ -75,7 +75,7 @@ public class TradeWidget extends ClickableWidget {
             this.selector.setClickCallBack(item -> {
                 this.output = item.copy();
                 this.selector.setClickCallBack(null);
-                this.screen.remove(this.selector);
+                this.screen.removeWidget(this.selector);
                 updateCounter(this.outputCounter, this.output);
             });
         }
@@ -86,25 +86,25 @@ public class TradeWidget extends ClickableWidget {
     }
 
     private void updateCounter(IncrementButton counter, ItemStack item) {
-        counter.setBounds(1, item.isOf(Items.AIR) ? 1 : item.getMaxCount());
+        counter.setBounds(1, item.is(Items.AIR) ? 1 : item.getMaxStackSize());
         counter.setCallback(() -> item);
         counter.setCount(1);
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, BACKGROUND);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        drawTexture(matrices, this.x, this.y, 0,138, 120, 18);
+        blit(matrices, this.x, this.y, 0,138, 120, 18);
 
-        var itemRenderer = MinecraftClient.getInstance().getItemRenderer();
-        itemRenderer.renderGuiItemIcon(primary, this.x + 1, this.y + 1);
-        itemRenderer.renderGuiItemOverlay(this.screen.getText(), primary, this.x + 1, this.y + 1);
-        itemRenderer.renderGuiItemIcon(secondary, this.x + 36, this.y + 1);
-        itemRenderer.renderGuiItemOverlay(this.screen.getText(), secondary, this.x + 36, this.y + 1);
-        itemRenderer.renderGuiItemIcon(output, this.x + 85, this.y + 1);
-        itemRenderer.renderGuiItemOverlay(this.screen.getText(), output, this.x + 85, this.y + 1);
+        var itemRenderer = Minecraft.getInstance().getItemRenderer();
+        itemRenderer.renderGuiItem(primary, this.x + 1, this.y + 1);
+        itemRenderer.renderGuiItemDecorations(this.screen.getText(), primary, this.x + 1, this.y + 1);
+        itemRenderer.renderGuiItem(secondary, this.x + 36, this.y + 1);
+        itemRenderer.renderGuiItemDecorations(this.screen.getText(), secondary, this.x + 36, this.y + 1);
+        itemRenderer.renderGuiItem(output, this.x + 85, this.y + 1);
+        itemRenderer.renderGuiItemDecorations(this.screen.getText(), output, this.x + 85, this.y + 1);
 
         if (this.primaryCounter != null) this.primaryCounter.render(matrices, mouseX, mouseY, delta);
         if (this.secondaryCounter != null) this.secondaryCounter.render(matrices, mouseX, mouseY, delta);
@@ -127,7 +127,9 @@ public class TradeWidget extends ClickableWidget {
     }
 
     @Override
-    public void appendNarrations(NarrationMessageBuilder builder) {}
+    public void updateNarration(NarrationElementOutput narrationElementOutput) {
+
+    }
 
     public void setSelector(ItemSelector selector) {
         this.selector = selector;

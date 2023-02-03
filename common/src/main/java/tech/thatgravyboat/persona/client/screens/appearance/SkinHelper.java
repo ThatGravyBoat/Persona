@@ -1,8 +1,8 @@
 package tech.thatgravyboat.persona.client.screens.appearance;
 
 import com.google.gson.*;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.Pair;
+import com.mojang.datafixers.util.Pair;
+import net.minecraft.util.GsonHelper;
 import tech.thatgravyboat.persona.Personas;
 
 import java.net.URI;
@@ -30,7 +30,7 @@ public class SkinHelper {
 
             HttpResponse<String> uuidResponse = CLIENT.send(uuidRequest, HttpResponse.BodyHandlers.ofString());
             if (uuidResponse.statusCode() == 200) {
-                String uuid = JsonHelper.getString(GSON.fromJson(uuidResponse.body(), JsonObject.class), "id", null);
+                String uuid = GsonHelper.getAsString(GSON.fromJson(uuidResponse.body(), JsonObject.class), "id", null);
                 if (uuid != null) {
                     HttpRequest skinRequest = createGetRequest("https://sessionserver.mojang.com/session/minecraft/profile/"+uuid);
                     HttpResponse<String> skinResponse = CLIENT.send(skinRequest, HttpResponse.BodyHandlers.ofString());
@@ -47,10 +47,10 @@ public class SkinHelper {
     }
 
     private static Optional<String> getBase64Textures(JsonObject object) {
-        for (JsonElement prop : JsonHelper.getArray(object, "properties", new JsonArray())) {
+        for (JsonElement prop : GsonHelper.getAsJsonArray(object, "properties", new JsonArray())) {
             if (prop instanceof JsonObject json) {
-                if ("textures".equals(JsonHelper.getString(json, "name", null))) {
-                    String value = JsonHelper.getString(json, "value", null);
+                if ("textures".equals(GsonHelper.getAsString(json, "name", null))) {
+                    String value = GsonHelper.getAsString(json, "value", null);
                     if (value != null) {
                         return Optional.of(new String(Base64.getDecoder().decode(value)));
                     }
@@ -61,10 +61,10 @@ public class SkinHelper {
     }
 
     private static Pair<String, Boolean> getSkinUrl(JsonObject object) {
-        JsonObject textures = JsonHelper.getObject(object, "textures", new JsonObject());
-        JsonObject skin = JsonHelper.getObject(textures, "SKIN", new JsonObject());
-        String skinUrl = JsonHelper.getString(skin, "url", null);
-        boolean slim = "slim".equals(JsonHelper.getString(JsonHelper.getObject(skin, "metadata", new JsonObject()), "model", null));
+        JsonObject textures = GsonHelper.getAsJsonObject(object, "textures", new JsonObject());
+        JsonObject skin = GsonHelper.getAsJsonObject(textures, "SKIN", new JsonObject());
+        String skinUrl = GsonHelper.getAsString(skin, "url", null);
+        boolean slim = "slim".equals(GsonHelper.getAsString(GsonHelper.getAsJsonObject(skin, "metadata", new JsonObject()), "model", null));
         return skinUrl == null ? null : new Pair<>(skinUrl, slim);
     }
 

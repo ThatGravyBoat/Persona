@@ -2,15 +2,13 @@ package tech.thatgravyboat.persona.common.utils;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.village.TradeOffer;
-import net.minecraft.village.TradeOffers;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.MerchantOffer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import tech.thatgravyboat.persona.api.CodecUtils;
-
-import java.util.Random;
 
 public record ItemTradeListing(
         ItemStack primaryItem,
@@ -19,7 +17,7 @@ public record ItemTradeListing(
         int maxUses,
         int rewardExp,
         float priceMultiplier
-) implements TradeOffers.Factory {
+) implements VillagerTrades.ItemListing {
 
     public static final Codec<ItemTradeListing> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             CodecUtils.ITEM_STACK_CODEC.fieldOf("primaryItem").forGetter(ItemTradeListing::primaryItem),
@@ -30,12 +28,12 @@ public record ItemTradeListing(
             Codec.FLOAT.fieldOf("priceMultiplier").orElse(1f).forGetter(ItemTradeListing::priceMultiplier)
     ).apply(instance, ItemTradeListing::new));
 
-    public TradeOffer create() {
-        return create(null, null);
+    public MerchantOffer create() {
+        return new MerchantOffer(this.primaryItem, this.secondaryItem, this.givenItem, this.maxUses, this.rewardExp, this.priceMultiplier);
     }
 
     @Override
-    public @NotNull TradeOffer create(Entity entity, Random random) {
-        return new TradeOffer(this.primaryItem, this.secondaryItem, this.givenItem, this.maxUses, this.rewardExp, this.priceMultiplier);
+    public @NotNull MerchantOffer getOffer(@NotNull Entity entity, @NotNull RandomSource random) {
+        return create();
     }
 }

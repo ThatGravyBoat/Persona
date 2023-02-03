@@ -1,28 +1,27 @@
 package tech.thatgravyboat.persona.client.screens.appearance;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.resources.ResourceLocation;
 import tech.thatgravyboat.persona.Personas;
 
-public class NextPageButton extends ButtonWidget {
+public class NextPageButton extends Button {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/appearance.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/appearance.png");
 
-    public NextPageButton(int x, int y, int width, int height, PressAction onPress) {
-        super(x, y, width, height, new LiteralText(""), onPress);
+    public NextPageButton(int x, int y, int width, int height, OnPress onPress) {
+        super(x, y, width, height, CommonComponents.EMPTY, onPress);
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, BACKGROUND);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int v = !this.active ? 168 : this.isHovered() ? 148 : 128;
-        drawTexture(matrices, this.x, this.y, 140, v, this.width, this.height);
+        int v = !this.active ? 168 : this.isHoveredOrFocused() ? 148 : 128;
+        blit(matrices, this.x, this.y, 140, v, this.width, this.height);
     }
 }

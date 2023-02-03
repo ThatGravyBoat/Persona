@@ -1,13 +1,7 @@
 package tech.thatgravyboat.persona.api.interactions;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.JsonHelper;
 import tech.thatgravyboat.persona.api.interactions.types.*;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
 
@@ -31,6 +25,7 @@ public class Interactions {
         add(DelayedInteraction.SERIALIZER);
         add(IfInteraction.SERIALIZER);
         add(NothingInteraction.SERIALIZER);
+        add(SoundInteraction.SERIALIZER);
     }
 
     private static DataResult<? extends InteractionSerializer<?>> decode(String id) {

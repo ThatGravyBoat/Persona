@@ -1,11 +1,8 @@
 package tech.thatgravyboat.persona.api.interactions.types;
 
-import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.Interactions;
@@ -28,7 +25,7 @@ public record ListInteraction(List<Interaction<?>> interactions) implements Inte
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
+    public void activate(Persona persona, ServerPlayer player) {
         interactions.forEach(i -> i.activate(persona, player));
     }
 

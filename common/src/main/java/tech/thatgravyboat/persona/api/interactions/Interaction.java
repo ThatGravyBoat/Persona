@@ -1,6 +1,6 @@
 package tech.thatgravyboat.persona.api.interactions;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
 import tech.thatgravyboat.persona.common.entity.Persona;
 
@@ -22,7 +22,7 @@ public interface Interaction<T extends Interaction<T>> {
 
     InteractionType type();
 
-    void activate(Persona persona, ServerPlayerEntity player);
+    void activate(Persona persona, ServerPlayer player);
 
     InteractionSerializer<T> serializer();
 }

@@ -28,7 +28,7 @@ public class MinecraftServerMixin implements IPersonaHolder {
         return ((MinecraftServer)(Object)this);
     }
 
-    @Inject(method = "loadWorld", at = @At("HEAD"))
+    @Inject(method = "loadLevel", at = @At("HEAD"))
     private void onServerLoad(CallbackInfo ci) {
         createOwnPersonaManager();
     }

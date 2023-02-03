@@ -1,17 +1,16 @@
 package tech.thatgravyboat.persona.api;
 
 import com.google.gson.JsonElement;
-import com.mojang.datafixers.types.Func;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -19,14 +18,14 @@ import java.util.function.Function;
 public class CodecUtils {
 
     public static final Codec<ItemStack> ITEM_STACK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Registry.ITEM.getCodec().fieldOf("id").forGetter(ItemStack::getItem),
+            Registry.ITEM.byNameCodec().fieldOf("id").forGetter(ItemStack::getItem),
             Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
-            NbtCompound.CODEC.optionalFieldOf("tag").forGetter(stack -> Optional.ofNullable(stack.getNbt()))
+            CompoundTag.CODEC.optionalFieldOf("tag").forGetter(stack -> Optional.ofNullable(stack.getTag()))
     ).apply(instance, CodecUtils::createStack));
 
-    private static ItemStack createStack(Item item, int count, Optional<NbtCompound> nbt) {
+    private static ItemStack createStack(Item item, int count, Optional<CompoundTag> nbt) {
         ItemStack stack = new ItemStack(item, count);
-        nbt.ifPresent(stack::setNbt);
+        nbt.ifPresent(stack::setTag);
         return stack;
     }
 

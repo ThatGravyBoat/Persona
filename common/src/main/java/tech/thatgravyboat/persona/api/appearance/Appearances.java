@@ -2,7 +2,7 @@ package tech.thatgravyboat.persona.api.appearance;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import tech.thatgravyboat.persona.api.appearance.appearances.EntityAppearance;
 import tech.thatgravyboat.persona.api.appearance.appearances.GeckoLibAppearance;
@@ -33,14 +33,14 @@ public class Appearances {
         return Optional.ofNullable(SERIALIZERS.get(id)).map(DataResult::success).orElse(DataResult.error("No appearabce type found."));
     }
 
-    public static <T extends Appearance<T>> NbtCompound toNbt(Appearance<T> appearance) {
+    public static <T extends Appearance<T>> CompoundTag toNbt(Appearance<T> appearance) {
         return CODEC.encodeStart(NbtOps.INSTANCE, appearance).result()
-                .filter(NbtCompound.class::isInstance)
-                .map(NbtCompound.class::cast)
-                .orElse(new NbtCompound());
+                .filter(CompoundTag.class::isInstance)
+                .map(CompoundTag.class::cast)
+                .orElse(new CompoundTag());
     }
 
-    public static Appearance<?> fromNbt(NbtCompound compound) {
+    public static Appearance<?> fromNbt(CompoundTag compound) {
         if (compound.isEmpty()) return null;
         return CODEC.parse(NbtOps.INSTANCE, compound).result().orElse(null);
     }

@@ -4,6 +4,7 @@ public enum InteractionType {
     RANDOM(true),
     LIST(true),
     CHAT(true),
+    SOUND(true),
     NOTHING(true),
     TRADE(false),
     COMMAND(true),

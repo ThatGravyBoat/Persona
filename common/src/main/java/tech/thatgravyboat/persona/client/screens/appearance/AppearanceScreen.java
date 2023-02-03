@@ -1,23 +1,24 @@
 package tech.thatgravyboat.persona.client.screens.appearance;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.api.Features;
 import tech.thatgravyboat.persona.api.appearance.Appearance;
@@ -32,12 +33,15 @@ import tech.thatgravyboat.persona.common.entity.Persona;
 import tech.thatgravyboat.persona.common.registry.Registry;
 import tech.thatgravyboat.persona.common.utils.ClientRenderUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class AppearanceScreen extends Screen implements ScreenHelper {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/appearance.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/appearance.png");
 
     private final List<ItemStack> itemsTooltips = new ArrayList<>();
 
@@ -57,18 +61,18 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
 
     private final Persona persona;
 
-    private ButtonWidget nextPage;
+    private Button nextPage;
 
     public AppearanceScreen(String id, BlockPos pos) {
-        super(new LiteralText(""));
-        this.persona = new Persona(Registry.PERSONA.get(), MinecraftClient.getInstance().world, false);
-        persona.setCustomName(new LiteralText(this.displayName));
+        super(CommonComponents.EMPTY);
+        this.persona = new Persona(Registry.PERSONA.get(), Minecraft.getInstance().level, false);
+        persona.setCustomName(Component.literal(this.displayName));
         this.id = id;
         this.pos = pos;
     }
 
     public void updateScreen() {
-        clearChildren();
+        clearWidgets();
         init();
     }
 
@@ -82,18 +86,18 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
         this.nametag = false;
 
         this.nextPage = addElement(new NextPageButton(x + 204, y + 100, 20, 20,
-                b -> client.setScreen(new InteractionScreen(this.id, this.displayName, this.pos, createAppearance(), createFeatures()))));
+                b -> minecraft.setScreen(new InteractionScreen(this.id, this.displayName, this.pos, createAppearance(), createFeatures()))));
 
         addElement(new ChangeModeWidget(mode,x + 204, y + 8, 20, 20, m -> {
             this.mode = m;
             updateScreen();
         }, (button, matrices, mouseX, mouseY) -> this.renderTooltip(matrices, "Mode: " + this.mode.name().toLowerCase(Locale.ROOT), mouseX, mouseY)));
 
-        TextFieldWidget text = addElement(new TextFieldWidget(this.textRenderer, x + 9, y + 9, 73, 10, new LiteralText("")));
-        text.setDrawsBackground(false);
-        text.setChangedListener(s -> {
+        EditBox text = addElement(new EditBox(this.font, x + 9, y + 9, 73, 10, CommonComponents.EMPTY));
+        text.setBordered(false);
+        text.setResponder(s -> {
             this.displayName = s;
-            persona.setCustomName(new LiteralText(this.displayName));
+            persona.setCustomName(Component.literal(this.displayName));
         });
 
         addElement(new ChangeModeWidget(mode,x + 204, y + 8, 20, 20, m -> {
@@ -111,20 +115,20 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
                         (stack, mouseX, mouseY, toggled) -> this.renderTooltip(stack, "Sitting: " + toggled, mouseX, mouseY)));
                 addElement(new ToggleSwitchWidget(x + 204, y + 66, 100, 148, this::setFacePlayer,
                         (stack, mouseX, mouseY, toggled) -> this.renderTooltip(stack, "Face Player: " + toggled, mouseX, mouseY)));
-                var labelTextField = addElement(new LabelTextField(this.textRenderer, x + 88, y + 20, 110, 10, new LiteralText("Username:")));
+                var labelTextField = addElement(new LabelTextField(this.font, x + 88, y + 20, 110, 10, Component.literal("Username:")));
                 labelTextField.setMaxLength(16);
-                ButtonWidget search = addElement(new ButtonWidget(x + 88, y + 32, 110, 20, new LiteralText("Search"), p -> {
-                    var skin = SkinHelper.getSkin(labelTextField.getText());
+                Button search = addElement(new Button(x + 88, y + 32, 110, 20, Component.literal("Search"), p -> {
+                    var skin = SkinHelper.getSkin(labelTextField.getValue());
                     if (skin != null) {
-                        persona.setAppearance(new NpcAppearance(skin.getLeft(), skin.getRight()));
-                        updateFeatures(EntityDimensions.changing(0.6F, 1.8F));
+                        persona.setAppearance(new NpcAppearance(skin.getFirst(), skin.getSecond()));
+                        updateFeatures(EntityDimensions.scalable(0.6F, 1.8F));
                         checkNextButton();
                     }
                 }));
                 search.active = false;
-                labelTextField.setChangedListener(s -> {
+                labelTextField.setResponder(s -> {
                     boolean valid = VALID.matcher(s).matches() && s.length() < 17 && s.length() > 2;
-                    labelTextField.setEditableColor(valid ? 0xffffff : 0xff0000);
+                    labelTextField.setTextColor(valid ? 0xffffff : 0xff0000);
                     search.active = valid;
                 });
             }
@@ -138,7 +142,7 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
                 var itemSelector = addElement(new ItemSelector(this, x + 88, y + 8, item -> item.getItem() instanceof SpawnEggItem));
                 itemSelector.setClickCallBack(item -> {
                     if (item.getItem() instanceof SpawnEggItem spawnEggItem) {
-                        EntityType<?> entityType = spawnEggItem.getEntityType(null);
+                        EntityType<?> entityType = spawnEggItem.getType(null);
                         persona.setAppearance(new EntityAppearance(entityType));
                         updateFeatures(entityType.getDimensions());
                         checkNextButton();
@@ -150,40 +154,40 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
                         (stack, mouseX, mouseY, toggled) -> this.renderTooltip(stack, "Name Tag: " + toggled, mouseX, mouseY)));
                 addElement(new ToggleSwitchWidget(x + 204, y + 42, 100, 148, this::setFacePlayer,
                         (stack, mouseX, mouseY, toggled) -> this.renderTooltip(stack, "Face Player: " + toggled, mouseX, mouseY)));
-                var modelText = addElement(new LabelTextField(this.textRenderer, x + 88, y + 20, 110, 10, new LiteralText("Model:")));
-                var textureText = addElement(new LabelTextField(this.textRenderer, x + 88, y + 42, 110, 10, new LiteralText("Texture:")));
-                var animation = addElement(new LabelTextField(this.textRenderer, x + 88, y + 64, 110, 10, new LiteralText("Animation (Optional):")));
+                var modelText = addElement(new LabelTextField(this.font, x + 88, y + 20, 110, 10, Component.literal("Model:")));
+                var textureText = addElement(new LabelTextField(this.font, x + 88, y + 42, 110, 10, Component.literal("Texture:")));
+                var animation = addElement(new LabelTextField(this.font, x + 88, y + 64, 110, 10, Component.literal("Animation (Optional):")));
 
                 modelText.setMaxLength(1000);
                 textureText.setMaxLength(1000);
                 animation.setMaxLength(1000);
 
-                ButtonWidget preview = addElement(new ButtonWidget(x + 88, y + 76, 110, 20, new LiteralText("Preview"), p -> {
+                Button preview = addElement(new Button(x + 88, y + 76, 110, 20, Component.literal("Preview"), p -> {
                     if (isGeckoGood(modelText, textureText, animation)) {
                         persona.setAppearance(new GeckoLibAppearance(getId(modelText), getId(textureText), getId(animation)));
-                        updateFeatures(EntityDimensions.changing(0.6F, 1.8F));
+                        updateFeatures(EntityDimensions.scalable(0.6F, 1.8F));
                         checkNextButton();
                     }
                 }));
                 preview.active = false;
 
-                modelText.setChangedListener(s -> {
-                    Identifier identifier = Identifier.tryParse(s);
+                modelText.setResponder(s -> {
+                    ResourceLocation identifier = ResourceLocation.tryParse(s);
                     boolean isGood = identifier != null && identifier.getPath().endsWith(".geo.json") && identifier.getPath().startsWith("geo/");
-                    modelText.setEditableColor(isGood ? 0xffffff : 0xff0000);
+                    modelText.setTextColor(isGood ? 0xffffff : 0xff0000);
                     preview.active = isGeckoGood(modelText, textureText, animation);
                 });
-                textureText.setChangedListener(s -> {
-                    Identifier identifier = Identifier.tryParse(s);
+                textureText.setResponder(s -> {
+                    ResourceLocation identifier = ResourceLocation.tryParse(s);
                     boolean isGood = identifier != null && identifier.getPath().endsWith(".png") && identifier.getPath().startsWith("textures/entity/");
-                    textureText.setEditableColor(isGood ? 0xffffff : 0xff0000);
+                    textureText.setTextColor(isGood ? 0xffffff : 0xff0000);
                     preview.active = isGeckoGood(modelText, textureText, animation);
                 });
-                animation.setChangedListener(s -> {
+                animation.setResponder(s -> {
                     if (!Objects.equals(s, "")) {
-                        Identifier identifier = Identifier.tryParse(s);
+                        ResourceLocation identifier = ResourceLocation.tryParse(s);
                         boolean isGood = identifier != null && identifier.getPath().endsWith(".animation.json") && identifier.getPath().startsWith("animations/");
-                        animation.setEditableColor(isGood ? 0xffffff : 0xff0000);
+                        animation.setTextColor(isGood ? 0xffffff : 0xff0000);
                     }
                     preview.active = isGeckoGood(modelText, textureText, animation);
                 });
@@ -199,17 +203,17 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
         this.nextPage.active = this.persona.getAppearance() != null && this.persona.getFeatures() != null;
     }
 
-    private Identifier getId(TextFieldWidget field) {
-        return Identifier.tryParse(field.getText());
+    private ResourceLocation getId(EditBox field) {
+        return ResourceLocation.tryParse(field.getValue());
     }
 
-    private boolean isGeckoGood(TextFieldWidget model, TextFieldWidget texture, TextFieldWidget animation) {
-        Identifier identifier = Identifier.tryParse(model.getText());
+    private boolean isGeckoGood(EditBox model, EditBox texture, EditBox animation) {
+        ResourceLocation identifier = ResourceLocation.tryParse(model.getValue());
         boolean modelGood = identifier != null && identifier.getPath().endsWith(".geo.json") && identifier.getPath().startsWith("geo/");
-        identifier = Identifier.tryParse(texture.getText());
+        identifier = ResourceLocation.tryParse(texture.getValue());
         boolean textureGood = identifier != null && identifier.getPath().endsWith(".png") && identifier.getPath().startsWith("textures/entity/");
-        identifier = Identifier.tryParse(animation.getText());
-        boolean animationGood = animation.getText().equals("") || (identifier != null && identifier.getPath().endsWith(".animation.json") && identifier.getPath().startsWith("animations/"));
+        identifier = ResourceLocation.tryParse(animation.getValue());
+        boolean animationGood = animation.getValue().equals("") || (identifier != null && identifier.getPath().endsWith(".animation.json") && identifier.getPath().startsWith("animations/"));
         return modelGood && textureGood && animationGood;
     }
 
@@ -234,16 +238,16 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
 
     private void updateFeatures(EntityDimensions dimensions) {
         EntityDimensions entityDimensions = dimensions != null ? dimensions :
-                persona.getFeatures() != null ? persona.getFeatures().dimensions() : EntityDimensions.changing(1, 2);
+                persona.getFeatures() != null ? persona.getFeatures().dimensions() : EntityDimensions.scalable(1, 2);
         persona.setFeatures(new Features(false, this.baby, this.sitting, entityDimensions, this.nametag));
     }
 
-    private void renderTooltip(MatrixStack stack, String text, int x, int y) {
-        this.renderTooltip(stack, new LiteralText(text), x, y);
+    private void renderTooltip(PoseStack stack, String text, int x, int y) {
+        this.renderTooltip(stack, Component.literal(text), x, y);
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
         itemsTooltips.clear();
         renderBackground(matrices);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
@@ -252,10 +256,10 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
         int x = this.width / 2 - 116;
         int y = this.height / 2 - 64;
 
-        drawTexture(matrices, x, this.height / 2 - 64, 0,0, 232, 128);
+        blit(matrices, x, this.height / 2 - 64, 0,0, 232, 128);
         super.render(matrices, mouseX, mouseY, delta);
 
-        matrices.push();
+        matrices.pushPose();
 
         float divider = Math.max(2f, persona.getFeatures() != null ? persona.getFeatures().dimensions().height : 2f) + 1f;
         try {
@@ -266,7 +270,7 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
             checkNextButton();
             e.printStackTrace();
         }
-        matrices.pop();
+        matrices.popPose();
 
         for (ItemStack itemsTooltip : itemsTooltips) {
             renderTooltip(matrices, itemsTooltip, mouseX, mouseY);
@@ -274,13 +278,12 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
-
-    public <T extends Drawable & Selectable & Element> T addElement(T element) {
-        return addDrawable(addSelectableChild(element));
+    public <T extends Widget & NarratableEntry & GuiEventListener> T addElement(T element) {
+        return addWidget(addRenderableWidget(element));
     }
 
     @Override
@@ -289,8 +292,8 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
     }
 
     @Override
-    public TextRenderer getText() {
-        return this.textRenderer;
+    public Font getText() {
+        return this.font;
     }
 
     public Appearance<?> createAppearance() {
@@ -302,7 +305,7 @@ public class AppearanceScreen extends Screen implements ScreenHelper {
     }
 
     public Features createFeatures() {
-        EntityDimensions dimensions = this.persona.getFeatures() != null ? this.persona.getFeatures().dimensions() : EntityDimensions.changing(0.6F, 1.8F);
+        EntityDimensions dimensions = this.persona.getFeatures() != null ? this.persona.getFeatures().dimensions() : EntityDimensions.scalable(0.6F, 1.8F);
         return new Features(this.facePlayer, this.baby, this.sitting, dimensions, this.nametag);
     }
 }

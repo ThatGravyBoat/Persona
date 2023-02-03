@@ -1,18 +1,18 @@
 package tech.thatgravyboat.persona.client.screens.interactions.trading;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.api.Features;
 import tech.thatgravyboat.persona.api.NpcData;
@@ -33,7 +33,7 @@ import java.util.List;
 
 public class TradeScreen extends Screen implements ScreenHelper {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/trading.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/trading.png");
 
     private final String id;
     private final String displayName;
@@ -42,7 +42,7 @@ public class TradeScreen extends Screen implements ScreenHelper {
     private final Features features;
 
     public TradeScreen(String id, String displayName, BlockPos pos, Appearance<?> appearance, Features features) {
-        super(new LiteralText(""));
+        super(CommonComponents.EMPTY);
         this.id = id;
         this.displayName = displayName;
         this.pos = pos;
@@ -62,7 +62,7 @@ public class TradeScreen extends Screen implements ScreenHelper {
         int y = this.height / 2 - 69;
 
         this.selector = new ItemSelector(this, x + 150, this.height/2 - 57);
-        this.addButton = addElement(new AddButtonWidget(x+117, y+4, 12, 12, new LiteralText(""), p -> {
+        this.addButton = addElement(new AddButtonWidget(x+117, y+4, 12, 12, CommonComponents.EMPTY, p -> {
             this.widgets.add(addElement(new TradeWidget(this, x+9, y + 18 + (this.widgets.size() * 18), this.selector)));
             if (widgets.size() == 5) {
                 addButton.active = false;
@@ -71,7 +71,7 @@ public class TradeScreen extends Screen implements ScreenHelper {
 
         addElement(new NextPageButton(x + 113, y + 113, 20, 20, b -> {
             NetPacketHandler.sendToServer(new CreatePersonaMessage(new NpcData(id, this.displayName, this.appearance, createInteraction(), this.features), this.pos));
-            this.close();
+            this.onClose();
         }));
     }
 
@@ -88,7 +88,7 @@ public class TradeScreen extends Screen implements ScreenHelper {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(Minecraft client, int width, int height) {
         super.resize(client, width, height);
         int x = width / 2 - 69;
         int y = height / 2 - 64;
@@ -113,15 +113,17 @@ public class TradeScreen extends Screen implements ScreenHelper {
                 }
             }
             this.selector.setClickCallBack(null);
-            this.remove(this.selector);
+            this.removeWidget(this.selector);
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     //This is needed to make the method public
+
+
     @Override
-    public void remove(Element child) {
-        super.remove(child);
+    public void removeWidget(GuiEventListener guiEventListener) {
+        super.removeWidget(guiEventListener);
     }
 
     public void renderTooltip(ItemStack stack) {
@@ -129,13 +131,13 @@ public class TradeScreen extends Screen implements ScreenHelper {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
         itemsTooltips.clear();
         renderBackground(matrices);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, BACKGROUND);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        drawTexture(matrices, this.width / 2 - 69, this.height / 2 - 69, 0,0, 138, 138);
+        blit(matrices, this.width / 2 - 69, this.height / 2 - 69, 0,0, 138, 138);
         super.render(matrices, mouseX, mouseY, delta);
 
         if (this.selector.isListening()) this.selector.render(matrices, mouseX, mouseY, delta);
@@ -145,15 +147,15 @@ public class TradeScreen extends Screen implements ScreenHelper {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
-    public <T extends Drawable & Selectable & Element> T addElement(T element) {
-        return addDrawable(addSelectableChild(element));
+    public <T extends Widget & NarratableEntry & GuiEventListener> T addElement(T element) {
+        return addWidget(addRenderableWidget(element));
     }
 
-    public TextRenderer getText() {
-        return this.textRenderer;
+    public Font getText() {
+        return this.font;
     }
 }

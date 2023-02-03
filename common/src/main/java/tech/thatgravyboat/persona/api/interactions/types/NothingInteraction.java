@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Decoder;
 import com.mojang.serialization.Encoder;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
@@ -20,7 +20,7 @@ public record NothingInteraction() implements Interaction<NothingInteraction> {
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {}
+    public void activate(Persona persona, ServerPlayer player) {}
 
     @Override
     public InteractionSerializer<NothingInteraction> serializer() {

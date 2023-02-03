@@ -3,12 +3,11 @@ package tech.thatgravyboat.persona.api.conditions.types;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.NumberRange;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import tech.thatgravyboat.persona.api.CodecUtils;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.conditions.types.base.ConditionSerializer;
@@ -18,11 +17,11 @@ public record PlayerHasItemCondition(ItemPredicate predicate) implements Conditi
     public static final Serializer SERIALIZER = new Serializer();
 
     @Override
-    public boolean valid(ServerPlayerEntity player) {
-        PlayerInventory inventory = player.getInventory();
-        for (DefaultedList<ItemStack> itemStacks : ImmutableList.of(inventory.main, inventory.armor, inventory.offHand)) {
+    public boolean valid(ServerPlayer player) {
+        Inventory inventory = player.getInventory();
+        for (NonNullList<ItemStack> itemStacks : ImmutableList.of(inventory.items, inventory.armor, inventory.offhand)) {
             for (ItemStack itemStack : itemStacks) {
-                if (predicate().test(itemStack)) return true;
+                if (predicate().matches(itemStack)) return true;
             }
         }
         return false;
@@ -36,7 +35,7 @@ public record PlayerHasItemCondition(ItemPredicate predicate) implements Conditi
     static class Serializer implements ConditionSerializer<PlayerHasItemCondition> {
 
         public static final Codec<PlayerHasItemCondition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                CodecUtils.passthrough(ItemPredicate::toJson, ItemPredicate::fromJson).fieldOf("predicate").forGetter(PlayerHasItemCondition::predicate)
+                CodecUtils.passthrough(ItemPredicate::serializeToJson, ItemPredicate::fromJson).fieldOf("predicate").forGetter(PlayerHasItemCondition::predicate)
         ).apply(instance, PlayerHasItemCondition::new));
 
         @Override

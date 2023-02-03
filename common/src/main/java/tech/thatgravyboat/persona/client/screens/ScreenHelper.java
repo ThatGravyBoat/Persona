@@ -1,10 +1,10 @@
 package tech.thatgravyboat.persona.client.screens;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.Font;
+import net.minecraft.world.item.ItemStack;
 
 public interface ScreenHelper {
 
     void renderTooltip(ItemStack stack);
-    TextRenderer getText();
+    Font getText();
 }

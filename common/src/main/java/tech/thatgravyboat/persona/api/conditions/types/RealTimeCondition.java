@@ -2,22 +2,21 @@ package tech.thatgravyboat.persona.api.conditions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.predicate.NumberRange;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.CodecUtils;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.conditions.types.base.ConditionSerializer;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
-public record RealTimeCondition(NumberRange.IntRange timeRange) implements Condition<RealTimeCondition> {
+public record RealTimeCondition(MinMaxBounds.Ints timeRange) implements Condition<RealTimeCondition> {
 
     public static final Serializer SERIALIZER = new Serializer();
 
     @Override
-    public boolean valid(ServerPlayerEntity player) {
-        return timeRange.test(LocalDateTime.now().toLocalTime().toSecondOfDay());
+    public boolean valid(ServerPlayer player) {
+        return timeRange.matches(LocalDateTime.now().toLocalTime().toSecondOfDay());
     }
 
     @Override
@@ -28,7 +27,7 @@ public record RealTimeCondition(NumberRange.IntRange timeRange) implements Condi
     static class Serializer implements ConditionSerializer<RealTimeCondition> {
 
         public static final Codec<RealTimeCondition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                CodecUtils.passthrough(NumberRange.IntRange::toJson, NumberRange.IntRange::fromJson).fieldOf("time").forGetter(RealTimeCondition::timeRange)
+                CodecUtils.passthrough(MinMaxBounds.Ints::serializeToJson, MinMaxBounds.Ints::fromJson).fieldOf("time").forGetter(RealTimeCondition::timeRange)
         ).apply(instance, RealTimeCondition::new));
 
         @Override

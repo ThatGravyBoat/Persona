@@ -1,9 +1,9 @@
 package tech.thatgravyboat.persona.common.network.messages.server;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.common.lib.State;
 import tech.thatgravyboat.persona.common.management.IPersonaHolder;
@@ -18,10 +18,10 @@ import java.util.regex.Pattern;
 public record CheckIdMessage(String id) implements IPacket<CheckIdMessage> {
 
     public static final Handler HANDLER = new Handler();
-    public static final Identifier ID = new Identifier(Personas.MOD_ID, "check_id");
+    public static final ResourceLocation ID = new ResourceLocation(Personas.MOD_ID, "check_id");
 
     @Override
-    public Identifier getID() {
+    public ResourceLocation getID() {
         return ID;
     }
 
@@ -35,19 +35,19 @@ public record CheckIdMessage(String id) implements IPacket<CheckIdMessage> {
         private static final Pattern VALIDATOR = Pattern.compile("\\w+");
 
         @Override
-        public void encode(CheckIdMessage message, PacketByteBuf buffer) {
-            buffer.writeString(message.id());
+        public void encode(CheckIdMessage message, FriendlyByteBuf buffer) {
+            buffer.writeUtf(message.id());
         }
 
         @Override
-        public CheckIdMessage decode(PacketByteBuf buffer) {
-            return new CheckIdMessage(buffer.readString());
+        public CheckIdMessage decode(FriendlyByteBuf buffer) {
+            return new CheckIdMessage(buffer.readUtf());
         }
 
         @Override
-        public Consumer<PlayerEntity> handle(CheckIdMessage message) {
+        public Consumer<Player> handle(CheckIdMessage message) {
             return player -> {
-                if (player instanceof ServerPlayerEntity serverPlayer && serverPlayer.isCreativeLevelTwoOp()) {
+                if (player instanceof ServerPlayer serverPlayer && serverPlayer.canUseGameMasterBlocks()) {
                     if (serverPlayer.server instanceof IPersonaHolder holder && holder.getPersonaManager() != null) {
                         boolean alreadyAnNpc = holder.getPersonaManager().isAlreadyAnNpc(message.id());
                         State state = alreadyAnNpc ? State.ALREADY_EXISTS : message.id().length() > 2 && VALIDATOR.matcher(message.id()).matches() ? State.SERVER_VALID : State.INVALID;

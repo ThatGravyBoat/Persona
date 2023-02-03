@@ -1,11 +1,11 @@
 package tech.thatgravyboat.persona.common.network.messages.server;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.api.NpcData;
 import tech.thatgravyboat.persona.common.entity.Persona;
@@ -19,10 +19,10 @@ import java.util.function.Consumer;
 public record SummonPersonaMessage(String id, BlockPos pos) implements IPacket<SummonPersonaMessage> {
 
     public static final Handler HANDLER = new Handler();
-    public static final Identifier ID = new Identifier(Personas.MOD_ID, "summon_persona");
+    public static final ResourceLocation ID = new ResourceLocation(Personas.MOD_ID, "summon_persona");
 
     @Override
-    public Identifier getID() {
+    public ResourceLocation getID() {
         return ID;
     }
 
@@ -34,31 +34,31 @@ public record SummonPersonaMessage(String id, BlockPos pos) implements IPacket<S
     private static class Handler implements IPacketHandler<SummonPersonaMessage> {
 
         @Override
-        public void encode(SummonPersonaMessage message, PacketByteBuf buffer) {
-            buffer.writeString(message.id());
+        public void encode(SummonPersonaMessage message, FriendlyByteBuf buffer) {
+            buffer.writeUtf(message.id());
             buffer.writeBlockPos(message.pos());
         }
 
         @Override
-        public SummonPersonaMessage decode(PacketByteBuf buffer) {
-            return new SummonPersonaMessage(buffer.readString(), buffer.readBlockPos());
+        public SummonPersonaMessage decode(FriendlyByteBuf buffer) {
+            return new SummonPersonaMessage(buffer.readUtf(), buffer.readBlockPos());
         }
 
         @Override
-        public Consumer<PlayerEntity> handle(SummonPersonaMessage message) {
+        public Consumer<Player> handle(SummonPersonaMessage message) {
             return player -> {
-                if (player instanceof ServerPlayerEntity serverPlayer && serverPlayer.isCreativeLevelTwoOp()) {
+                if (player instanceof ServerPlayer serverPlayer && serverPlayer.canUseGameMasterBlocks()) {
                     if (serverPlayer.server instanceof IPersonaHolder holder && holder.getPersonaManager() != null) {
                         NpcData data = holder.getPersonaManager().getNpc(message.id());
                         if (data == null) {
-                            player.sendMessage(Text.of("Could not find persona."), true);
+                            ((ServerPlayer) player).sendSystemMessage(Component.literal("Could not find persona."), true);
                             return;
                         }
-                        Persona persona = Registry.PERSONA.get().create(serverPlayer.world);
+                        Persona persona = Registry.PERSONA.get().create(serverPlayer.level);
                         if (persona != null) {
                             persona.setPersona(data);
                             persona.setPos(message.pos().getX() + 0.5, message.pos().getY(), message.pos().getZ() + 0.5);
-                            serverPlayer.world.spawnEntity(persona);
+                            serverPlayer.level.addFreshEntity(persona);
                         }
                     }
                 }

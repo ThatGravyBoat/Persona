@@ -1,16 +1,11 @@
 package tech.thatgravyboat.persona.api.interactions.types;
 
-import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.MerchantScreenHandler;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.village.TradeOfferList;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.inventory.MerchantMenu;
+import net.minecraft.world.item.trading.MerchantOffers;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.types.base.InteractionSerializer;
@@ -30,19 +25,19 @@ public record TradeInteraction(List<ItemTradeListing> listings) implements Inter
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
-        persona.setCustomer(player);
-        OptionalInt optionalInt = player.openHandledScreen(new SimpleNamedScreenHandlerFactory((id, inv, unused) ->
-                new MerchantScreenHandler(id, inv, persona), persona.getCustomName()));
+    public void activate(Persona persona, ServerPlayer player) {
+        persona.setTradingPlayer(player);
+        OptionalInt optionalInt = player.openMenu(new SimpleMenuProvider((id, inv, unused) ->
+                new MerchantMenu(id, inv, persona), persona.getCustomName()));
         if (optionalInt.isPresent()) {
-            TradeOfferList list = new TradeOfferList();
+            MerchantOffers list = new MerchantOffers();
             listings()
                 .stream()
                 .map(ItemTradeListing::create)
                 .forEachOrdered(list::add);
             if (!list.isEmpty()) {
-                persona.setOffersFromServer(list);
-                player.sendTradeOffers(optionalInt.getAsInt(), list, 0, 0, false, false);
+                persona.overrideOffers(list);
+                player.sendMerchantOffers(optionalInt.getAsInt(), list, 0, 0, false, false);
             }
         }
 

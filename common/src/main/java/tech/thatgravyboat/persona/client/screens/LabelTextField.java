@@ -1,28 +1,27 @@
 package tech.thatgravyboat.persona.client.screens;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
-public class LabelTextField extends TextFieldWidget {
+public class LabelTextField extends EditBox {
 
-    private final TextRenderer textRenderer;
+    private final Font textRenderer;
 
-    public LabelTextField(TextRenderer textRenderer, int x, int y, int width, int height, Text text) {
+    public LabelTextField(Font textRenderer, int x, int y, int width, int height, Component text) {
         super(textRenderer, x, y, width, height, text);
         this.textRenderer = textRenderer;
     }
 
-    public LabelTextField(TextRenderer textRenderer, int x, int y, int width, int height, @Nullable TextFieldWidget copyFrom, Text text) {
+    public LabelTextField(Font textRenderer, int x, int y, int width, int height, @Nullable EditBox copyFrom, Component text) {
         super(textRenderer, x, y, width, height, copyFrom, text);
         this.textRenderer = textRenderer;
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta) {
         if (this.isVisible()) {
             this.textRenderer.draw(matrices, getMessage(), this.x + 1, this.y - 10, 5592405);
         }

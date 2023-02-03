@@ -1,8 +1,8 @@
 package tech.thatgravyboat.persona.common.network.handlers;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public interface IPacket<T> {
-    Identifier getID();
+    ResourceLocation getID();
     IPacketHandler<T> getHandler();
 }

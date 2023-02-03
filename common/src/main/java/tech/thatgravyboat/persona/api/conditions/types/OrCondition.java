@@ -1,6 +1,6 @@
 package tech.thatgravyboat.persona.api.conditions.types;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.conditions.types.base.ConditionSerializer;
 
@@ -11,7 +11,7 @@ public record OrCondition(List<Condition<?>> conditions) implements Condition<Or
     public static final ListConditionSerializer<OrCondition> SERIALIZER = new ListConditionSerializer<>("or", OrCondition::new, OrCondition::conditions);
 
     @Override
-    public boolean valid(ServerPlayerEntity player) {
+    public boolean valid(ServerPlayer player) {
         for (Condition<?> condition : conditions) if (condition.valid(player)) return true;
         return false;
     }

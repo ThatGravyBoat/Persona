@@ -2,7 +2,7 @@ package tech.thatgravyboat.persona.api.interactions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.interactions.Interaction;
 import tech.thatgravyboat.persona.api.interactions.InteractionType;
 import tech.thatgravyboat.persona.api.interactions.Interactions;
@@ -25,7 +25,7 @@ public record RandomInteraction(List<Interaction<?>> interactions) implements In
     }
 
     @Override
-    public void activate(Persona persona, ServerPlayerEntity player) {
+    public void activate(Persona persona, ServerPlayer player) {
         if (interactions.isEmpty()) return;
         interactions.get(player.getRandom().nextInt(interactions.size())).activate(persona, player);
     }

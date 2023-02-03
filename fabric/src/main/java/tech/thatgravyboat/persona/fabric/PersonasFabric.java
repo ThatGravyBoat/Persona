@@ -1,7 +1,7 @@
 package tech.thatgravyboat.persona.fabric;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import tech.thatgravyboat.persona.Personas;
 import tech.thatgravyboat.persona.common.management.PersonaCommand;
 
@@ -10,6 +10,6 @@ public class PersonasFabric implements ModInitializer {
     public void onInitialize() {
         Personas.init();
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> PersonaCommand.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, access, dedicated) -> PersonaCommand.register(dispatcher));
     }
 }

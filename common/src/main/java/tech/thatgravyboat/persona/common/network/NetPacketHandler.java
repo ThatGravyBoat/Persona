@@ -1,10 +1,10 @@
 package tech.thatgravyboat.persona.common.network;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import tech.thatgravyboat.persona.common.network.handlers.IPacket;
 import tech.thatgravyboat.persona.common.network.handlers.IPacketHandler;
 import tech.thatgravyboat.persona.common.network.messages.client.IdStateMessage;
@@ -24,12 +24,12 @@ public class NetPacketHandler {
     }
 
     @ExpectPlatform
-    public static <T extends IPacket<T>> void sendToAllLoaded(T packet, World level, BlockPos pos) {
+    public static <T extends IPacket<T>> void sendToAllLoaded(T packet, Level level, BlockPos pos) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends IPacket<T>> void sendToPlayer(T packet, PlayerEntity player) {
+    public static <T extends IPacket<T>> void sendToPlayer(T packet, Player player) {
         throw new AssertionError();
     }
 
@@ -39,12 +39,12 @@ public class NetPacketHandler {
     }
 
     @ExpectPlatform
-    public static <T> void registerServerToClientPacket(Identifier location, IPacketHandler<T> handler, Class<T> tClass) {
+    public static <T> void registerServerToClientPacket(ResourceLocation location, IPacketHandler<T> handler, Class<T> tClass) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static <T> void registerClientToServerPacket(Identifier location, IPacketHandler<T> handler, Class<T> tClass) {
+    public static <T> void registerClientToServerPacket(ResourceLocation location, IPacketHandler<T> handler, Class<T> tClass) {
         throw new AssertionError();
     }
 

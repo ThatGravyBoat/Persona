@@ -1,24 +1,24 @@
 package tech.thatgravyboat.persona.client.screens.interactions.trading;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.resources.ResourceLocation;
 import tech.thatgravyboat.persona.Personas;
 
 import java.util.function.Consumer;
 
-public class InventoryModeWidget extends ButtonWidget {
+public class InventoryModeWidget extends Button {
 
-    private static final Identifier BACKGROUND = new Identifier(Personas.MOD_ID, "textures/trading.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(Personas.MOD_ID, "textures/trading.png");
 
     public Mode mode = Mode.CREATIVE;
     private final Consumer<Mode> onPress;
 
     public InventoryModeWidget(int x, int y, int width, int height, Consumer<Mode> onPress) {
-        super(x, y, width, height, new LiteralText(""), p -> {});
+        super(x, y, width, height, CommonComponents.EMPTY, p -> {});
         this.onPress = onPress;
     }
 
@@ -29,12 +29,12 @@ public class InventoryModeWidget extends ButtonWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, BACKGROUND);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int v = this.isHovered() ? 12 : 0;
-        drawTexture(matrices, this.x, this.y, mode.u, mode.v + v, this.width, this.height);
+        int v = this.isHoveredOrFocused() ? 12 : 0;
+        blit(matrices, this.x, this.y, mode.u, mode.v + v, this.width, this.height);
     }
 
     public enum Mode {

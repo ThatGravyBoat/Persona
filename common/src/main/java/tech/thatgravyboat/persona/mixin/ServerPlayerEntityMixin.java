@@ -1,6 +1,6 @@
 package tech.thatgravyboat.persona.mixin;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import tech.thatgravyboat.persona.common.lib.IPersonaCooldownHolder;
 
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public class ServerPlayerEntityMixin implements IPersonaCooldownHolder {
 
     private final Map<String, Long> persona$personaOnCooldown = new ConcurrentHashMap<>();

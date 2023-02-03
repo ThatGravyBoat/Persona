@@ -2,7 +2,7 @@ package tech.thatgravyboat.persona.api.conditions.types;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import tech.thatgravyboat.persona.api.conditions.types.base.Condition;
 import tech.thatgravyboat.persona.api.conditions.types.base.ConditionSerializer;
 import tech.thatgravyboat.persona.common.entity.Persona;
@@ -13,13 +13,13 @@ public record CooldownCondition(boolean instance, int time) implements Condition
     public static final Serializer SERIALIZER = new Serializer();
 
     @Override
-    public boolean valid(Persona persona, ServerPlayerEntity player) {
+    public boolean valid(Persona persona, ServerPlayer player) {
         if (player instanceof IPersonaCooldownHolder holder) {
             if (instance) {
-                if (holder.isPersonaOnCooldown(persona.getUuid(), time)) {
+                if (holder.isPersonaOnCooldown(persona.getUUID(), time)) {
                     return false;
                 }
-                holder.setPersonaOnCooldown(persona.getUuid());
+                holder.setPersonaOnCooldown(persona.getUUID());
             } else {
                 if (holder.isPersonaOnCooldown(persona.npcId(), time)) {
                     return false;
